@@ -11,4 +11,4 @@ pstats.f8 = f8_alt
 
 p = pstats.Stats('profiler_output')
 # Sort by cum time
-p.strip_dirs().sort_stats('time').print_stats()
+p.strip_dirs().sort_stats('time').print_stats("OccupancyGrid")
