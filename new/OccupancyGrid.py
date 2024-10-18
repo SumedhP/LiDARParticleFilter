@@ -59,7 +59,7 @@ class OccupancyGrid:
         for x in tqdm(range(width)):
             for y in range(height):
                 for theta in range(self.degrees):
-                    self.lt[x, y, theta] = self.computeDistanceToWall(x, y, theta)
+                    self.lt[x, y, theta] = self.__computeDistanceToWall(x, y, theta)
         
         # Save the lookup table
         output_file = self.config.map_file.split(".")[0] + "_lookup_table.npy"
@@ -89,7 +89,7 @@ class OccupancyGrid:
         return self.map[y, x]
 
     # This function is an implementation of the breshenham line algorithm
-    def computeDistanceToWall(self, x: int, y: int, theta: float) -> float:
+    def __computeDistanceToWall(self, x: int, y: int, theta: float) -> float:
         # Check if the x and y are within the map
         if x < 0 or x >= self.map.shape[1] or y < 0 or y >= self.map.shape[0]:
             return 0
@@ -108,12 +108,22 @@ class OccupancyGrid:
             y += dy
         return np.sqrt((x - starting_x) ** 2 + (y - starting_y) ** 2)
     
+    """
+    Returns distance to nearest wall for a given x, y, and theta
+    Returns 0 if out of bounds
+    Units are in pixels
+    """
     def getDistance(self, x: int, y: int, theta: float) -> float:
         # Normalize the theta
         theta = theta % 360
         theta = int(theta)
         return self.lt[x, y, theta]
     
+    """
+    Returns distance to nearest wall for a given set of x, y, and thetas
+    Returns 0 if out of bounds
+    Units are in pixels
+    """
     def getDistanceVectorized(self, x: np.array, y: np.array, theta: np.array) -> np.array:
         theta = theta.astype(int)
         return self.__getDistanceNumbaOptimized(self.lt, x, y, theta)
@@ -142,4 +152,3 @@ if __name__ == "__main__":
     for x, y in values_to_test:
         print("Pixel at ", x, y)
         print("Lookup table: ", og.getDistance(x, y, 0))
-        print("Computed: ", og.computeDistanceToWall(x, y, 0))
