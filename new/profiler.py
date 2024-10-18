@@ -1,6 +1,6 @@
 import cProfile
 import pstats
-from OccupancyGrid import runOccupancyGridTest
+from OccupancyGridTest import runOccupancyGridTest
 
 cProfile.run('runOccupancyGridTest()', 'profiler_output')
 

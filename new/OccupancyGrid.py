@@ -66,14 +66,6 @@ class OccupancyGrid:
         np.save(output_file, self.lt)
     
     def __displayLookupTable(self) -> None:
-        print("Lookup table shape: ", self.lt.shape)
-        values_to_test = [(14,14), (15,15), (50, 100)]
-        
-        for x, y in values_to_test:
-            print("Pixel at ", x, y)
-            print("Lookup table: ", self.lt[x, y, 0])
-            print("Computed: ", self.computeDistanceToWall(x, y, 0))
-        
         plt.figure("Lookup Table")
         # Swap the x and y axis for display
         swapped = np.swapaxes(self.lt, 0, 1)
@@ -124,12 +116,11 @@ class OccupancyGrid:
     
     def getDistanceVectorized(self, x: np.array, y: np.array, theta: np.array) -> np.array:
         theta = theta.astype(int)
-        # return self.lt[x, y, theta]
-        return self.numbaAttempt(self.lt, x, y, theta)
+        return self.__getDistanceNumbaOptimized(self.lt, x, y, theta)
     
     @staticmethod
     @numba.njit(parallel=True)
-    def numbaAttempt(lt: np.array, x: np.array, y: np.array, theta: np.array) -> np.array:
+    def __getDistanceNumbaOptimized(lt: np.array, x: np.array, y: np.array, theta: np.array) -> np.array:
         """
         This is the Numba-accelerated version of the getDistanceVectorized function.
         It takes in the lookup table and vectorized inputs for x, y, and theta.
@@ -143,52 +134,12 @@ class OccupancyGrid:
         
         return result
 
-    def warmupNumba(self):
-        x = np.random.randint(0, 100, 1000)
-        y = np.random.randint(0, 200, 1000)
-        theta = np.random.randint(0, 360, 1000)
-        self.getDistanceVectorized(x, y, theta)
-
-
-def runOccupancyGridTest():
-        config = MapConfig("Occupancy grid example 2.png", 128, "Occupancy grid example 2_lookup_table.npy")
-        og = OccupancyGrid(config)
-        
-        # Time how long it takes to get the distance to the nearest wall using nano seconds
-        from time import process_time_ns
-        start = process_time_ns()
-        val = og.getDistance(14, 14, 0)
-        end = process_time_ns()
-        print("Time to get distance in ms: ", (end - start) / 1000000)
-        
-        # Now do 1000 lookups of random locations and thetas in the map. Map is 100x200
-        NUM_LOOKUPS = 50000
-        start = process_time_ns()
-        for i in range(NUM_LOOKUPS):
-            x = np.random.randint(0, 100)
-            y = np.random.randint(0, 200)
-            theta = np.random.randint(0, 360)
-            val = og.getDistance(x, y, theta)
-        end = process_time_ns()
-        print("Time to get distance 1000 times in ms: ", (end - start) / 1000000)
-        
-        # Now do vectorized lookups of 1000 random locations and thetas in the map
-        x = np.random.randint(0, 100, NUM_LOOKUPS)
-        y = np.random.randint(0, 200, NUM_LOOKUPS)
-        theta = np.random.randint(0, 360, NUM_LOOKUPS)
-        
-        #Warmups
-        og.warmupNumba()
-        
-        from tqdm import tqdm
-        start = process_time_ns()
-        for i in tqdm(range(20000)):
-            x = np.random.randint(0, 100, NUM_LOOKUPS)
-            y = np.random.randint(0, 200, NUM_LOOKUPS)
-            theta = np.random.randint(0, 360, NUM_LOOKUPS)
-            val = og.getDistanceVectorized(x, y, theta)
-        end = process_time_ns()
-        print(f'Time to get distance {NUM_LOOKUPS} times vectorized in ms: ', (end - start) / 1000000)
-
 if __name__ == "__main__":
-    runOccupancyGridTest()
+    config = MapConfig("Occupancy grid example 2.png", 128, "Occupancy grid example 2_lookup_table.npy")
+    og = OccupancyGrid(config)
+    values_to_test = [(14,14), (15,15), (50, 100)]
+    
+    for x, y in values_to_test:
+        print("Pixel at ", x, y)
+        print("Lookup table: ", og.getDistance(x, y, 0))
+        print("Computed: ", og.computeDistanceToWall(x, y, 0))
