@@ -39,16 +39,13 @@ def runOccupancyGridTest():
         rand_y_list = np.random.randint(0, 200, NUM_LOOKUPS * NUM_ITERATIONS)
         rand_theta_list = np.random.randint(0, 360, NUM_LOOKUPS * NUM_ITERATIONS)
 
-        NUM_LOOPS = 100
-
         start = process_time_ns()
-        for loop in range(NUM_LOOPS):
-          for i in range(NUM_ITERATIONS):
-              list_start = i * NUM_LOOKUPS
-              list_end = (i + 1) * NUM_LOOKUPS
-              val = og.getDistanceVectorized(rand_x_list[list_start:list_end], rand_y_list[list_start:list_end], rand_theta_list[list_start:list_end])
+        for i in range(NUM_ITERATIONS):
+            list_start = i * NUM_LOOKUPS
+            list_end = (i + 1) * NUM_LOOKUPS
+            val = og.getDistanceVectorized(rand_x_list[list_start:list_end], rand_y_list[list_start:list_end], rand_theta_list[list_start:list_end])
         end = process_time_ns()
-        print("Time to get distance vectorized", NUM_ITERATIONS * NUM_LOOPS, " times for ", NUM_LOOKUPS," values in ms: ", (end - start) / 1000000 / NUM_ITERATIONS / NUM_LOOPS)
+        print("Time to get distance vectorized", NUM_ITERATIONS, " times for ", NUM_LOOKUPS," values in ms: ", (end - start) / 1000000 / NUM_ITERATIONS)
             
 
 if __name__ == "__main__":
