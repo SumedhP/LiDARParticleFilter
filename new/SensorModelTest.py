@@ -29,8 +29,7 @@ def runSensorModelTest():
     obsDistances = np.random.randint(0, 10, (NUM_PARTICLES, NUM_RAYS))
     expectedDistances = np.random.randint(0, 10, (NUM_PARTICLES, NUM_RAYS))
     prob = sm.getProbabilityVectorized(obsDistances, expectedDistances)
-    prob = sm.getProbabilityVectorizedRegular(obsDistances, expectedDistances)
-    
+
     # Now repeat each evaluation method
     AMOUNT_OF_EVALS = 1000
     for i in range(AMOUNT_OF_EVALS):
@@ -42,9 +41,6 @@ def runSensorModelTest():
         
         # Vectorized particle evaluation
         prob = sm.getProbabilityVectorized(obsDistances, expectedDistances)
-        
-        # Vectorized particle evaluation regular
-        prob = sm.getProbabilityVectorizedRegular(obsDistances, expectedDistances)
 
 if __name__ == "__main__":
     runSensorModelTest()

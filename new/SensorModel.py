@@ -83,21 +83,6 @@ class SensorModel:
         # Normalize the probabilities
         prob /= np.sum(prob)
         return prob
-    
-    def getProbabilityVectorizedRegular(self, obsDistances, expectedDistances) -> np.ndarray:
-        """
-        This is the non-optimized version of the getProbabilityVectorized method
-        """
-        n_particles = obsDistances.shape[0]
-        prob = np.ones(n_particles)
-        # Loop through all observations in parallel
-        for i in numba.prange(obsDistances.shape[1]):  # Use prange for parallel loops
-            # Multiply the probability by looking up values in the prob_table
-            prob *= self.prob_table[obsDistances[:, i], expectedDistances[:, i]]
-        
-        prob = np.power(prob, self.config.inv_squash_factor)
-        prob /= np.sum(prob)
-        return prob
         
 
 if __name__ == "__main__":
