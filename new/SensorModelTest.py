@@ -42,5 +42,7 @@ def runSensorModelTest():
         # Vectorized particle evaluation
         prob = sm.getProbabilityVectorized(obsDistances, expectedDistances)
 
+    print("The most likely particle has a probability of: ", np.max(prob))
+
 if __name__ == "__main__":
     runSensorModelTest()
