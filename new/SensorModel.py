@@ -66,17 +66,20 @@ class SensorModel:
         """
         # Initialize probability array with ones
         n_particles = obsDistances.shape[0]
+        n_observations = obsDistances.shape[1]
+        
         prob = np.ones(n_particles)
         
         # Loop through all observations in parallel
-        for i in numba.prange(obsDistances.shape[1]):  # Iterate over observations (dimension d)
-            for j in range(n_particles):  # Iterate over particles (dimension n)
+        for i in numba.prange(n_observations):  # Parallelized outer loop (over observations)
+            for j in range(n_particles):  # Iterate over particles
                 obs_dist = obsDistances[j, i]
                 exp_dist = expectedDistances[j, i]
                 prob[j] *= prob_table[obs_dist, exp_dist]
         
-        # Squash the probabilities to make the values more distinguishable and avoid peakiness
+        # Squash the probabilities to avoid peakiness
         prob = np.power(prob, inv_squash_factor) 
+        
         # Normalize the probabilities
         prob /= np.sum(prob)
         return prob

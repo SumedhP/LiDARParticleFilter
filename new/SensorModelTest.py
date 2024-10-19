@@ -4,7 +4,7 @@ from SensorModel import SensorModel, SensorModelConfig
 import numpy as np
 
 def runSensorModelTest():
-    config = SensorModelConfig(3, 10, 0.2)
+    config = SensorModelConfig(5, 10, 0.2)
     sm = SensorModel(config)
     
     # Print the table
@@ -18,12 +18,12 @@ def runSensorModelTest():
     NUM_RAYS = 24
         
     # Run a single particle evaluation
-    obsDistances = np.random.randint(0, 10, NUM_RAYS)
-    expectedDistances = np.random.randint(0, 10, NUM_RAYS)
+    obsDistances = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    expectedDistances = np.array([2, 2, 1, 4, 7, 6, 7, 3, 9, 9])
     
     prob = sm.getProbability(obsDistances, expectedDistances)
     # print with 10 decimal places
-    print("Probability for single particle: ", "{0:0.5f}".format(prob))
+    print("Probability for single particle: ", "{0:0.20f}".format(prob))
     
     # Run a vectorized particle evaluation
     obsDistances = np.random.randint(0, 10, (NUM_PARTICLES, NUM_RAYS))
