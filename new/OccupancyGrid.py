@@ -4,6 +4,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import numba
 from numba import prange
+from tqdm import tqdm
 
 
 @dataclass
@@ -24,13 +25,11 @@ class OccupancyGrid:
         self.config = config
         self.degrees = 360
         self.__setupMap()
-        # self.__displayMap()
 
         if config.lookup_table is not None:
             self.lt = np.load(config.lookup_table)
         else:
             self.__computeLookupTable()
-        # self.__displayLookupTable()
 
     """
     Sets up the passed in map file as a boolean array
@@ -42,10 +41,12 @@ class OccupancyGrid:
         self.map = np.array(self.map)
         self.map = self.map < self.config.threshold
 
-    def __displayMap(self):
+    def displayMap(self):
         print("Map shape: ", self.map.shape)
         plt.figure("Map")
-        plt.imshow(self.map)
+        #Invert the colors so it matches the lookup table
+        displayMap = np.invert(self.map)
+        plt.imshow(displayMap)
 
     """
     Precomputes the lookup table for all distances to the nearest wall for all x, y, and theta
@@ -59,7 +60,7 @@ class OccupancyGrid:
         self.lt = np.zeros((width, height, self.degrees))
         print("Lt shape: ", self.lt.shape)
 
-        for x in range(width):
+        for x in tqdm(range(width)):
             for y in range(height):
                 for theta in range(self.degrees):
                     self.lt[x, y, theta] = self.__computeDistanceToWall(x, y, theta)
@@ -68,12 +69,17 @@ class OccupancyGrid:
         output_file = self.config.map_file.split(".")[0] + "_lookup_table.npy"
         np.save(output_file, self.lt)
 
-    def __displayLookupTable(self) -> None:
+    def displayLookupTable(self) -> None:
         plt.figure("Lookup Table")
         # Swap the x and y axis for display
         swapped = np.swapaxes(self.lt, 0, 1)
         print("Swapped shape: ", swapped.shape)
-        plt.imshow(swapped[:, :, 0])
+        # Display the minimum distance for each location
+        # Make new 3d array but of x * y * 1, where final value is the minmum distance from any angle
+        min_arr = np.min(swapped, axis=2, keepdims=True)
+        print(min_arr.shape)
+        
+        plt.imshow(min_arr)
         plt.show()
 
     """
@@ -97,6 +103,8 @@ class OccupancyGrid:
         # Check if the x and y are within the map
         if x < 0 or x >= self.map.shape[1] or y < 0 or y >= self.map.shape[0]:
             return 0
+
+        theta = np.radians(theta)
 
         # Find the unit vector for the direction
         dx = np.cos(theta)
@@ -154,6 +162,8 @@ class OccupancyGrid:
 
         return result
 
+    def getMapDimensions(self):
+        return self.map.shape
 
 if __name__ == "__main__":
     config = MapConfig(
@@ -165,3 +175,6 @@ if __name__ == "__main__":
     for x, y in values_to_test:
         print("Pixel at ", x, y)
         print("Lookup table: ", og.getDistance(x, y, 0))
+    
+    og.displayMap()
+    og.displayLookupTable()
