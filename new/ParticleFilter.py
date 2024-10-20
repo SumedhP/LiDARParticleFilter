@@ -72,7 +72,7 @@ class ParticleFilter:
         self.particles[:] = self.particles[np.searchsorted(a=np.cumsum(self.weights), v=r)]
         self.weights[:] = 1 / N
     
-    def odometryUpdateCallback(self, dx_meter, dy_meter, dtheta_deg):
+    def odometryUpdate(self, dx_meter, dy_meter, dtheta_deg):
         self.particles[:, 0] += dx_meter
         self.particles[:, 1] += dy_meter
         self.particles[:, 2] += dtheta_deg
@@ -86,3 +86,30 @@ class ParticleFilter:
         mapDim = self.map.getMapDimensions()
         self.particles[:, 0] = np.clip(self.particles[:, 0], 0, mapDim[0])
         self.particles[:, 1] = np.clip(self.particles[:, 1], 0, mapDim[1])
+        
+    def lidarUpdate(self, obs_ranges, obs_angles):
+        num_rays = len(obs_ranges)
+        num_particles = self.config.num_particles
+        
+        # Expand particles array to repeat each particle for each ray
+        particles_repeated = np.repeat(self.particles, num_rays, axis=0)
+        
+        mapAdjustedParticles = particles_repeated.copy()
+        mapAdjustedParticles[: 0] *= self.config.map_px_per_meter
+        mapAdjustedParticles[: 1] *= self.config.map_px_per_meter
+        mapAdjustedParticles[:, 2] += np.tile(obs_angles, num_particles)
+        
+        # Make this so we don't keep on creating new arrays
+        if self.expected_ranges is None:
+            self.expected_ranges = np.zeros(num_rays * num_particles, dtype=np.float32)
+        
+        x_values = mapAdjustedParticles[:, 0]
+        y_values = mapAdjustedParticles[:, 1]
+        theta_values = mapAdjustedParticles[:, 2]
+        self.expected_ranges = self.map.getDistanceVectorized(x_values, y_values, theta_values)
+        
+        # Now evalute the expected ranges vs the observed ranges
+        
+        
+        
+        
